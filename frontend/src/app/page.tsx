@@ -1,108 +1,219 @@
+"use client"
 import Link from 'next/link'
+import {
+    Box,
+    Container,
+    Typography,
+    Button,
+    Card,
+    CardContent,
+    Stack,
+    Avatar
+} from '@mui/material'
+import {
+    Rocket as RocketIcon,
+    SmartToy as SmartToyIcon,
+    BarChart as BarChartIcon,
+    Description as DescriptionIcon
+} from '@mui/icons-material'
 
 export default function HomePage() {
     return (
-        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
-            <div className="max-w-7xl mx-auto">
-                {/* Hero Section */}
-                <div className="text-center mb-16">
-                    <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
-                        WBS Generator
-                    </h1>
-                    <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8 leading-relaxed">
-                        Transform project descriptions into structured, actionable task hierarchies
-                        using intelligent AI and the proven <span className="font-bold text-blue-600">8+2 rule</span>
-                        (8h development + 2h R&D per feature).
-                    </p>
-                    <Link
-                        href="/project"
-                        className="inline-block bg-blue-600 text-white px-8 py-4 rounded-2xl text-xl font-semibold hover:bg-blue-700 transition-all shadow-xl hover:shadow-2xl"
+        <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
+            {/* Navigation */}
+            <Box
+                component="nav"
+                sx={{
+                    py: 2.5,
+                    px: 4,
+                    borderBottom: '1px solid',
+                    borderColor: 'rgba(0,0,0,0.08)',
+                    bgcolor: 'white'
+                }}
+            >
+                <Container maxWidth="xl">
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <RocketIcon sx={{ fontSize: 28, color: '#667eea' }} />
+                            <Typography variant="h6" fontWeight="700" sx={{ color: '#1e293b' }}>
+                                WBS Generator
+                            </Typography>
+                        </Box>
+                        <Button
+                            variant="text"
+                            sx={{
+                                color: '#667eea',
+                                fontWeight: 600,
+                                '&:hover': { background: 'rgba(102, 126, 234, 0.04)' }
+                            }}
+                        >
+                            API Docs
+                        </Button>
+                    </Box>
+                </Container>
+            </Box>
+
+            {/* Hero Section */}
+            <Container maxWidth="lg">
+                <Box sx={{ textAlign: 'center', pt: 10, pb: 8 }}>
+                    <Typography
+                        variant="h2"
+                        component="h1"
+                        fontWeight="800"
+                        sx={{
+                            mb: 3,
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                            fontSize: { xs: '2.5rem', md: '4rem' }
+                        }}
                     >
-                        🚀 Start New Project
-                    </Link>
-                </div>
+                        WBS Generator
+                    </Typography>
+                    <Typography
+                        variant="h6"
+                        color="text.secondary"
+                        sx={{
+                            mb: 5,
+                            maxWidth: '800px',
+                            mx: 'auto',
+                            lineHeight: 1.8,
+                            fontSize: { xs: '1rem', md: '1.15rem' },
+                            fontWeight: 400
+                        }}
+                    >
+                        Transform project descriptions into structured, actionable task hierarchies using intelligent AI and the proven{' '}
+                        <Typography component="span" sx={{ fontWeight: 700, color: '#667eea' }}>
+                            8+2 rule
+                        </Typography>
+                        {' '}(8h development + 2h R&D per feature).
+                    </Typography>
+                    <Button
+                        component={Link}
+                        href="/project"
+                        variant="contained"
+                        size="large"
+                        startIcon={<RocketIcon />}
+                        sx={{
+                            py: 1.8,
+                            px: 4.5,
+                            fontSize: '1.1rem',
+                            fontWeight: 600,
+                            borderRadius: 3,
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            boxShadow: '0 8px 24px rgba(102, 126, 234, 0.3)',
+                            textTransform: 'none',
+                            '&:hover': {
+                                background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 12px 32px rgba(102, 126, 234, 0.4)',
+                            }
+                        }}
+                    >
+                        Start New Project
+                    </Button>
+                </Box>
 
-                {/* Features Grid */}
-                <div className="grid md:grid-cols-3 gap-8 mt-24">
-                    <div className="text-center p-8 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all">
-                        <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                            <span className="text-3xl">🤖</span>
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-4">AI-Powered</h3>
-                        <p className="text-gray-600">
-                            Automatically extracts features from project descriptions or PDF specifications
-                        </p>
-                    </div>
-
-                    <div className="text-center p-8 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all">
-                        <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                            <span className="text-3xl">📊</span>
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-4">8+2 Rule</h3>
-                        <p className="text-gray-600">
-                            Every feature = exactly 10 hours (8h development + 2h research & design)
-                        </p>
-                    </div>
-
-                    <div className="text-center p-8 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all">
-                        <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                            <span className="text-3xl">📈</span>
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-4">Excel Export</h3>
-                        <p className="text-gray-600">
-                            Professional formatted Excel files ready for project management tools
-                        </p>
-                    </div>
-                </div>
+                {/* Feature Cards */}
+                <Box sx={{ display: 'flex', gap: 3, mb: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {[
+                        { icon: SmartToyIcon, title: 'AI-Powered', desc: 'Automatically extracts features from project descriptions or PDF specifications', color: '#667eea' },
+                        { icon: BarChartIcon, title: '8+2 Rule', desc: 'Every feature = exactly 10 hours (8h development + 2h research & design)', color: '#10b981' },
+                        { icon: DescriptionIcon, title: 'Excel Export', desc: 'Professional formatted Excel files ready for project management tools', color: '#a855f7' }
+                    ].map((feature) => (
+                        <Card
+                            key={feature.title}
+                            elevation={0}
+                            sx={{
+                                flex: '1 1 300px',
+                                maxWidth: 360,
+                                borderRadius: 3,
+                                border: '1px solid rgba(0,0,0,0.08)',
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                    transform: 'translateY(-4px)',
+                                    boxShadow: '0 12px 24px rgba(0,0,0,0.08)'
+                                }
+                            }}
+                        >
+                            <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                                <Avatar
+                                    sx={{
+                                        width: 64,
+                                        height: 64,
+                                        mx: 'auto',
+                                        mb: 3,
+                                        bgcolor: `${feature.color}15`,
+                                        color: feature.color
+                                    }}
+                                >
+                                    <feature.icon sx={{ fontSize: 32 }} />
+                                </Avatar>
+                                <Typography variant="h6" fontWeight="700" sx={{ mb: 2, color: '#1e293b' }}>
+                                    {feature.title}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
+                                    {feature.desc}
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </Box>
 
                 {/* How It Works */}
-                <div className="mt-24 bg-white rounded-3xl shadow-2xl p-12">
-                    <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
-                        How It Works
-                    </h2>
-                    <div className="space-y-8">
-                        <div className="flex items-start gap-6">
-                            <div className="flex-shrink-0 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl">
-                                1
-                            </div>
-                            <div>
-                                <h4 className="text-xl font-bold text-gray-900 mb-2">Input Project Details</h4>
-                                <p className="text-gray-600">Provide project name and description, or upload a PDF specification</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start gap-6">
-                            <div className="flex-shrink-0 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl">
-                                2
-                            </div>
-                            <div>
-                                <h4 className="text-xl font-bold text-gray-900 mb-2">AI Extracts Features</h4>
-                                <p className="text-gray-600">Local AI (Ollama) or cloud AI extracts key features and analyzes competitors</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start gap-6">
-                            <div className="flex-shrink-0 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl">
-                                3
-                            </div>
-                            <div>
-                                <h4 className="text-xl font-bold text-gray-900 mb-2">Generate WBS</h4>
-                                <p className="text-gray-600">Each feature is broken down into tasks following the 8+2 rule</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start gap-6">
-                            <div className="flex-shrink-0 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl">
-                                4
-                            </div>
-                            <div>
-                                <h4 className="text-xl font-bold text-gray-900 mb-2">Export & Use</h4>
-                                <p className="text-gray-600">Download as Excel, CSV, or JSON for your project management tools</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+                <Card
+                    elevation={0}
+                    sx={{
+                        mb: 10,
+                        borderRadius: 4,
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        overflow: 'hidden'
+                    }}
+                >
+                    <CardContent sx={{ p: 5 }}>
+                        <Typography
+                            variant="h4"
+                            fontWeight="800"
+                            textAlign="center"
+                            sx={{ mb: 5, color: '#1e293b' }}
+                        >
+                            How It Works
+                        </Typography>
+                        <Stack spacing={4}>
+                            {[
+                                { number: 1, title: 'Input Project Details', description: 'Provide project name and description, or upload a PDF specification' },
+                                { number: 2, title: 'AI Extracts Features', description: 'Cloud AI extracts key features and analyzes competitors' },
+                                { number: 3, title: 'Generate WBS', description: 'Each feature is broken down into tasks following the 8+2 rule' },
+                                { number: 4, title: 'Export & Use', description: 'Download as Excel, CSV, or JSON for your project management tools' }
+                            ].map((step) => (
+                                <Box key={step.number} sx={{ display: 'flex', gap: 3 }}>
+                                    <Avatar
+                                        sx={{
+                                            width: 48,
+                                            height: 48,
+                                            flexShrink: 0,
+                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                            fontWeight: 700,
+                                            fontSize: '1.25rem'
+                                        }}
+                                    >
+                                        {step.number}
+                                    </Avatar>
+                                    <Box>
+                                        <Typography variant="h6" fontWeight="700" sx={{ mb: 1, color: '#1e293b' }}>
+                                            {step.title}
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
+                                            {step.description}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                            ))}
+                        </Stack>
+                    </CardContent>
+                </Card>
+            </Container>
+        </Box>
     )
 }

@@ -37,8 +37,13 @@ export interface WBSResponse {
     total_hours: number
 }
 
+export interface Competitor {
+    name: string
+    features: string[]
+}
+
 export interface CompetitorAnalysisResponse {
-    competitors: string[]
+    competitors: Competitor[]
     missing_features: string[]
     recommendations: string[]
 }

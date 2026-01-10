@@ -40,16 +40,24 @@ class PDFService:
         prompt = f"""
         You are analyzing a product specification document for a project called "{project_name}".
         
-        Extract 5-10 key features from the following document text.
-        For each feature, provide:
-        - A concise name (3-5 words)
-        - A brief description (1-2 sentences)
+        CRITICAL INSTRUCTIONS:
+        1. ONLY extract features that are EXPLICITLY mentioned in the document text below.
+        2. Do NOT invent, generate, or suggest any features that are not in the document.
+        3. Do NOT add common features like "user authentication" unless the document specifically mentions them.
+        4. If a feature is partially described, extract only what is explicitly stated.
+        5. If no features are clearly mentioned, return an empty array [].
+        
+        For each feature found in the document:
+        - Use the exact feature name from the document if available
+        - Provide a description based ONLY on what the document says
         
         Document Text:
-        {text[:4000]}  # Limit to avoid token limits
+        {text[:6000]}
         
         Return ONLY a valid JSON array in this exact format (no markdown, no additional text):
-        [{{"id": "f1", "name": "Feature Name", "description": "Feature description", "source": "pdf"}}]
+        [{{\"id\": \"f1\", \"name\": \"Feature Name from Document\", \"description\": \"Description based on document content\", \"source\": \"pdf\"}}]
+        
+        If no features are explicitly stated in the document, return: []
         """
         
         try:
@@ -59,11 +67,12 @@ class PDFService:
             )
             if response.text:
                 features = self._parse_json_response(response.text)
-                return features if features else self._generate_default_features()
+                return features if features else []
         except Exception as e:
             print(f"Gemini parsing error: {e}")
         
-        return self._generate_default_features()
+        # Return empty list - we don't generate features for PDF mode
+        return []
     
     def _parse_json_response(self, response: str) -> List[Dict]:
         """Parse JSON from AI response"""

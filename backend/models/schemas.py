@@ -59,7 +59,11 @@ class ExportRequest(BaseModel):
 
 # ============ COMPETITOR ANALYSIS ============
 
+class Competitor(BaseModel):
+    name: str
+    features: List[str]
+
 class CompetitorAnalysisResponse(BaseModel):
-    competitors: List[str]
+    competitors: List[Competitor]
     missing_features: List[str]
     recommendations: List[str]
