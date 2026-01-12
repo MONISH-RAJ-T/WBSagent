@@ -11,6 +11,15 @@ export interface Feature {
     description: string
     priority?: string
     confidence?: number
+    execution_order?: number  // Sequential order: 1, 2, 3...
+    reasoning?: string  // AI's explanation for ordering
+    category_name?: string  // Category label
+}
+
+export interface FlowGenerateRequest {
+    project_name: string
+    description: string
+    features: Feature[]
 }
 
 export interface FeatureListResponse {

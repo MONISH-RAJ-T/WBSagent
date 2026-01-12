@@ -2,7 +2,7 @@
 Pydantic Models & Schemas for WBS Generator
 """
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 # ============ REQUEST MODELS ============
 
@@ -14,10 +14,6 @@ class FeatureGenerateRequest(BaseModel):
     project_name: str
     description: str
 
-class WBSGenerateRequest(BaseModel):
-    project_name: str
-    features: List[str]
-
 # ============ FEATURE MODELS ============
 
 class Feature(BaseModel):
@@ -26,6 +22,17 @@ class Feature(BaseModel):
     description: str
     priority: Optional[str] = "medium"
     confidence: Optional[float] = 0.8
+    execution_order: Optional[int] = None  # Sequential order: 1, 2, 3...
+    reasoning: Optional[str] = None  # AI's explanation for ordering
+
+class FlowGenerateRequest(BaseModel):
+    project_name: str
+    description: str
+    features: List[Feature]
+
+class WBSGenerateRequest(BaseModel):
+    project_name: str
+    features: List[Feature]
 
 class FeatureListResponse(BaseModel):
     project_name: str
@@ -39,7 +46,7 @@ class WBSTask(BaseModel):
     name: str
     description: str
     duration_hours: float
-    dependencies: List[str] = []
+    dependencies: List[str] = Field(default_factory=list)
     level: int = 1
     parent_id: Optional[str] = None
     task_type: str = "Dev"  # Dev or R&D

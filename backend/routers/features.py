@@ -5,7 +5,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List
 from services.ai_service import AIService
-from models.schemas import FeatureListResponse, ProjectRequest, CompetitorAnalysisResponse
+from models.schemas import FeatureListResponse, ProjectRequest, CompetitorAnalysisResponse, FlowGenerateRequest
 import tempfile
 import os
 
@@ -80,7 +80,40 @@ async def analyze_competitors(request: FeatureRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Competitor analysis failed: {str(e)}")
 
-# 4. Validate feature list
+# 4. Generate Execution Flow (Dependencies)
+@router.post("/flow", response_model=FeatureListResponse)
+async def generate_flow(request: FlowGenerateRequest):
+    """Generate execution flow/dependencies for features"""
+    try:
+        print(f"[FLOW] Received request for project: {request.project_name}")
+        print(f"[FLOW] Number of features: {len(request.features)}")
+        
+        # Convert Feature objects to dicts for AI service
+        features_dicts = [f.model_dump() for f in request.features]
+        print(f"[FLOW] Successfully converted {len(features_dicts)} features to dicts")
+        
+        updated_features = await ai_service.generate_execution_flow(
+            project_name=request.project_name,
+            description=request.description,
+            features=features_dicts
+        )
+        print(f"[FLOW] AI service returned {len(updated_features)} features")
+        
+        response = FeatureListResponse(
+            project_name=request.project_name,
+            features=updated_features,
+            total_features=len(updated_features)
+        )
+        print(f"[FLOW] Successfully created response")
+        return response
+        
+    except Exception as e:
+        import traceback
+        error_detail = traceback.format_exc()
+        print(f"[FLOW ERROR] {error_detail}")
+        raise HTTPException(status_code=500, detail=f"Flow generation failed: {str(e)}\n{error_detail}")
+
+# 5. Validate feature list
 @router.post("/validate", response_model=dict)
 async def validate_features(features: List[str]):
     """Validate feature list for completeness and feasibility"""

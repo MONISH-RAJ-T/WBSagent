@@ -5,14 +5,10 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 from services.wbs_engine import WBSEngine
-from models.schemas import WBSResponse, WBSTask
+from models.schemas import WBSResponse, WBSTask, WBSGenerateRequest
 
 router = APIRouter()
 wbs_engine = WBSEngine()
-
-class WBSGenerateRequest(BaseModel):
-    project_name: str
-    features: List[str]
 
 @router.post("/generate", response_model=WBSResponse)
 async def generate_wbs(request: WBSGenerateRequest):

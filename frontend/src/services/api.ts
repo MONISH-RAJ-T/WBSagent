@@ -44,6 +44,11 @@ export const featureAPI = {
         const response = await apiClient.post('/api/features/validate', features)
         return response.data
     },
+
+    generateFlow: async (request: any): Promise<FeatureListResponse> => {
+        const response = await apiClient.post('/api/features/flow', request)
+        return response.data
+    },
 }
 
 // WBS API

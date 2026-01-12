@@ -21,20 +21,17 @@ class AIService:
     async def extract_features_from_text(self, text: str) -> List[Dict]:
         """Extract features from project description using Gemini AI"""
         prompt = f"""
-        Analyze this project description and extract a COMPREHENSIVE list of 15-25 features required to build a PRODUCTION-GRADE application.
-        The list should cover core functionality, UI/UX, security, backend, database, and DevOps/deployment aspects.
+        PROJECT: {text}
         
-        For each feature, provide:
-        1. A short name (3-5 words)
-        2. A brief description (1-2 sentences)
+        TASK: List 15-20 core features for this software project.
         
-        Project Description:
-        {text}
+        REQUIREMENTS:
+        - Cover: Auth, UI, Backend, DB, DevOps
+        - Format: JSON Array only
+        - NO explanations
         
-        Return ONLY a valid JSON array of features in this exact format (no markdown, no additional text):
-        [{{"id": "f1", "name": "Feature Name", "description": "Feature description"}}]
-        
-        Ensure the features are detailed enough to form a complete Work Breakdown Structure (WBS).
+        RETURN JSON:
+        [{{"id": "f1", "name": "Feature Name", "description": "Brief description"}}]
         """
         
         try:
@@ -49,20 +46,40 @@ class AIService:
         return self._generate_mock_features(text)
     
     async def _call_gemini(self, prompt: str) -> List[Dict]:
-        """Call Gemini API for feature extraction"""
-        try:
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt
-            )
-            
-            if response.text:
-                return self._parse_ai_response(response.text)
-            
-            return []
-        except Exception as e:
-            print(f"Gemini error: {e}")
-            return []
+        """Call Gemini API for feature extraction with retry logic"""
+        max_retries = 3
+        base_delay = 2  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                # Use flash model for speed and availability
+                model = "gemini-2.5-flash" 
+                
+                response = self.client.models.generate_content(
+                    model=model,
+                    contents=prompt
+                )
+                
+                if response.text:
+                    return self._parse_ai_response(response.text)
+                
+                return []
+                
+            except Exception as e:
+                # Check for overload/unavailable errors
+                error_str = str(e)
+                if "503" in error_str or "429" in error_str:
+                    if attempt < max_retries - 1:
+                        delay = base_delay * (2 ** attempt)
+                        print(f"Gemini overloaded (503), retrying in {delay}s...")
+                        import asyncio
+                        await asyncio.sleep(delay)
+                        continue
+                
+                print(f"Gemini error (attempt {attempt+1}/{max_retries}): {e}")
+                if attempt == max_retries - 1:
+                    return []
+        return []
     
     def _parse_ai_response(self, response: str) -> List[Dict]:
         """Parse AI response into structured features"""

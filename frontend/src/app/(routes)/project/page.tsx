@@ -7,6 +7,8 @@ import { featureAPI, wbsAPI, exportAPI } from '../../../services/api'
 import { Feature, CompetitorAnalysisResponse, WBSTask, WBSResponse } from '@/types'
 import { Container, Box, Stepper, Step, StepLabel, Typography, Paper } from '@mui/material'
 
+import FlowEditor from '../../../components/wbs/FlowEditor'
+
 export default function ProjectPage() {
     const [projectData, setProjectData] = useState<any>(null)
     const [features, setFeatures] = useState<Feature[]>([])
@@ -17,7 +19,7 @@ export default function ProjectPage() {
     const [error, setError] = useState<string | null>(null)
     const [activeStep, setActiveStep] = useState(0)
 
-    const steps = ['Project Details', 'Review Features', 'WBS Tasks', 'Export']
+    const steps = ['Project Details', 'Review Features', 'Execution Flow', 'WBS Tasks', 'Export']
 
     const handleInitialSubmit = async (data: { projectName: string; description: string; hasPdf: boolean; pdfFile?: File }) => {
         setProjectData(data)
@@ -57,14 +59,29 @@ export default function ProjectPage() {
         try {
             const selectedFeatureNames = selectedFeatures.map(f => f.name)
 
-            const response = await wbsAPI.generateWBS({
-                project_name: projectData.projectName,
-                features: selectedFeatureNames
-            })
-            setWbsResponse(response)
-            setActiveStep(2) // Move to WBS results
         } catch (err: any) {
             setError(err.response?.data?.detail || err.message || 'Failed to generate WBS')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleFlowSave = async (featuresWithDeps: Feature[]) => {
+        setFeatures(featuresWithDeps)
+        setLoading(true)
+        setError(null)
+
+        try {
+            // Generate WBS with dependencies
+            const response = await wbsAPI.generateWBS({
+                project_name: projectData.projectName,
+                features: featuresWithDeps // Sending full objects now
+            } as any) // Cast as any because frontend types might need update if Strict Mode
+
+            setWbsResponse(response)
+            setActiveStep(3) // WBS Step is now index 3
+        } catch (err: any) {
+            setError(err.response?.data?.detail || err.message || 'Failed to generate WBS from flow')
         } finally {
             setLoading(false)
         }
@@ -107,16 +124,29 @@ export default function ProjectPage() {
                         features={features}
                         competitors={competitorAnalysis?.competitors || []}
                         onBack={() => setActiveStep(0)}
-                        onSubmit={handleFeatureSelectionSubmit}
+                        onSubmit={(selected) => {
+                            setFeatures(selected);
+                            setActiveStep(2); // Go to Flow
+                        }}
                         loading={loading}
                     />
                 )
             case 2:
                 return (
+                    <FlowEditor
+                        projectName={projectData?.projectName || ''}
+                        description={projectData?.description || ''}
+                        features={features}
+                        onSave={handleFlowSave}
+                        onBack={() => setActiveStep(1)}
+                    />
+                )
+            case 3:
+                return (
                     <WBSTaskEditor
                         tasks={wbsResponse?.tasks || []}
                         projectName={projectData?.projectName || ''}
-                        onBack={() => setActiveStep(1)}
+                        onBack={() => setActiveStep(2)}
                         onExport={handleExport}
                     />
                 )
