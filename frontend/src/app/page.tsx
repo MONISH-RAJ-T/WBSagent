@@ -47,12 +47,26 @@ export default function HomePage() {
                             </span>
                         </div>
 
-                        {/* CTA Button */}
-                        <Link href="/project">
-                            <button className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 transition-all duration-300">
-                                Get Started
-                            </button>
-                        </Link>
+                        {/* Navigation Links */}
+                        <div className="flex items-center gap-6">
+                            <a
+                                href="#features"
+                                className="text-gray-700 font-medium hover:text-purple-600 transition-colors cursor-pointer"
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
+                                }}
+                            >
+                                Features
+                            </a>
+
+                            {/* CTA Button */}
+                            <Link href="/project">
+                                <button className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 transition-all duration-300">
+                                    Get Started
+                                </button>
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -83,32 +97,15 @@ export default function HomePage() {
                             </motion.h1>
 
                             <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-8 leading-relaxed max-w-xl">
-                                Generate professional Work Breakdown Structures from project descriptions or PDF specifications using advanced AI. Trusted by over 10,000+ project managers worldwide.
+                                Generate professional Work Breakdown Structures from project descriptions or PDF specifications using advanced AI.
                             </motion.p>
 
-                            <motion.div variants={fadeInUp} className="flex flex-wrap gap-4">
+                            <motion.div variants={fadeInUp}>
                                 <Link href="/project">
                                     <button className="px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-2xl font-bold shadow-2xl shadow-purple-500/40 hover:shadow-purple-500/60 hover:scale-105 transition-all duration-300">
                                         Get Started for Free
                                     </button>
                                 </Link>
-                                <button className="px-8 py-4 bg-white text-purple-700 rounded-2xl font-bold border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-300">
-                                    View Demo
-                                </button>
-                            </motion.div>
-
-                            <motion.div variants={fadeInUp} className="flex items-center gap-6 mt-8">
-                                <div className="flex -space-x-3">
-                                    {[1, 2, 3, 4].map((i) => (
-                                        <div key={i} className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 border-2 border-white"></div>
-                                    ))}
-                                </div>
-                                <div>
-                                    <div className="flex text-yellow-400 text-sm mb-1">
-                                        {'★★★★★'}
-                                    </div>
-                                    <p className="text-sm text-gray-600">Rated 4.9/5 by 2,000+ users</p>
-                                </div>
                             </motion.div>
                         </motion.div>
 
@@ -167,11 +164,11 @@ export default function HomePage() {
                             </div>
                         </motion.div>
                     </div>
-                </div>
-            </section>
+                </div >
+            </section >
 
-            {/* Why WBS Pro Section */}
-            <section className="py-20 px-6 bg-white">
+            {/* Why Section */}
+            <section id="features" className="py-20 px-6 bg-white">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-gray-900 to-purple-900 bg-clip-text text-transparent mb-4">
@@ -215,10 +212,10 @@ export default function HomePage() {
                         ))}
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* Features Grid */}
-            <section className="py-20 px-6 bg-gradient-to-br from-purple-50 to-white">
+            < section className="py-20 px-6 bg-gradient-to-br from-purple-50 to-white" >
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-gray-900 to-purple-900 bg-clip-text text-transparent mb-4">
@@ -249,231 +246,7 @@ export default function HomePage() {
                         ))}
                     </div>
                 </div>
-            </section>
-
-            {/* Pricing Section */}
-            <section className="py-20 px-6 bg-white">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-gray-900 to-purple-900 bg-clip-text text-transparent mb-4">
-                            Simple, transparent pricing
-                        </h2>
-                        <p className="text-lg text-gray-600">Start free, upgrade when you need more</p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                        {[
-                            {
-                                name: 'Free',
-                                price: '$0',
-                                period: 'forever',
-                                features: ['5 projects/month', 'Basic AI features', 'Excel export', 'Community support'],
-                                cta: 'Get Started',
-                                highlighted: false
-                            },
-                            {
-                                name: 'Pro',
-                                price: '$19',
-                                period: 'per month',
-                                features: ['Unlimited projects', 'Advanced AI', 'All export formats', 'Priority support', 'Team collaboration'],
-                                cta: 'Start Free Trial',
-                                highlighted: true
-                            },
-                            {
-                                name: 'Enterprise',
-                                price: 'Custom',
-                                period: 'contact us',
-                                features: ['Custom AI models', 'API access', 'Dedicated support', 'Custom integrations', 'SLA guarantee'],
-                                cta: 'Contact Sales',
-                                highlighted: false
-                            }
-                        ].map((plan, index) => (
-                            <motion.div
-                                key={index}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className={`relative p-8 rounded-2xl border-2 ${plan.highlighted ? 'border-purple-600 bg-gradient-to-br from-purple-50 to-white shadow-2xl scale-105' : 'border-gray-200 bg-white'}`}
-                            >
-                                {plan.highlighted && (
-                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-full text-sm font-semibold">
-                                        Most Popular
-                                    </div>
-                                )}
-                                <div className="text-center mb-6">
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                                    <div className="flex items-baseline justify-center gap-1">
-                                        <span className="text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">{plan.price}</span>
-                                        {plan.price !== 'Custom' && <span className="text-gray-500">/{plan.period}</span>}
-                                    </div>
-                                    {plan.price === 'Custom' && <span className="text-gray-500 text-sm">{plan.period}</span>}
-                                </div>
-
-                                <ul className="space-y-3 mb-8">
-                                    {plan.features.map((feature, fIndex) => (
-                                        <li key={fIndex} className="flex items-start gap-3">
-                                            <svg className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                            </svg>
-                                            <span className="text-gray-700">{feature}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                <button className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${plan.highlighted ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60 hover:scale-105' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
-                                    {plan.cta}
-                                </button>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Testimonials */}
-            <section className="py-20 px-6 bg-gradient-to-br from-purple-50 to-white">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-gray-900 to-purple-900 bg-clip-text text-transparent mb-4">
-                            What people say about our app
-                        </h2>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {[
-                            {
-                                name: 'Sarah Johnson',
-                                role: 'Product Manager at TechCorp',
-                                avatar: '👩‍💼',
-                                text: 'WBS Generator cut our project planning time by 70%. The AI is incredibly accurate and the export options are exactly what we needed.',
-                                rating: 5
-                            },
-                            {
-                                name: 'Michael Chen',
-                                role: 'Engineering Lead',
-                                avatar: '👨‍💻',
-                                text: 'Best investment for our team. The dependency mapping feature alone is worth it. Highly recommended for any serious PM.',
-                                rating: 5
-                            },
-                            {
-                                name: 'Emily Rodriguez',
-                                role: 'Startup Founder',
-                                avatar: '👩‍🚀',
-                                text: 'As a non-technical founder, this tool is a lifesaver. I can now create professional WBS documents without any help.',
-                                rating: 5
-                            }
-                        ].map((testimonial, index) => (
-                            <motion.div
-                                key={index}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="p-8 rounded-2xl bg-white border border-purple-100 hover:shadow-xl transition-all duration-300"
-                            >
-                                <div className="flex text-yellow-400 mb-4">
-                                    {Array(testimonial.rating).fill('★').join('')}
-                                </div>
-                                <p className="text-gray-700 mb-6 leading-relaxed">"{testimonial.text}"</p>
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-2xl">
-                                        {testimonial.avatar}
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
-                                        <p className="text-sm text-gray-600">{testimonial.role}</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* CTA Section */}
-            <section className="py-20 px-6 bg-gradient-to-r from-purple-600 to-purple-800">
-                <div className="max-w-4xl mx-auto text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                    >
-                        <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-6">
-                            Ready to transform your projects?
-                        </h2>
-                        <p className="text-xl text-purple-100 mb-8">
-                            Join thousands of project managers who trust WBS Generator
-                        </p>
-                        <Link href="/project">
-                            <button className="px-10 py-4 bg-white text-purple-700 rounded-2xl font-bold shadow-2xl hover:bg-purple-50 hover:scale-105 transition-all duration-300">
-                                Start Your Free Project Now
-                            </button>
-                        </Link>
-                    </motion.div>
-                </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="bg-gray-900 text-white py-12 px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid md:grid-cols-4 gap-8 mb-8">
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center">
-                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                </div>
-                                <span className="text-lg font-bold">WBS Generator</span>
-                            </div>
-                            <p className="text-gray-400 text-sm">AI-powered Work Breakdown Structure generator for modern project managers.</p>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold mb-4">Product</h4>
-                            <ul className="space-y-2 text-gray-400 text-sm">
-                                <li><a href="#" className="hover:text-purple-400 transition">Features</a></li>
-                                <li><a href="#" className="hover:text-purple-400 transition">Pricing</a></li>
-                                <li><a href="#" className="hover:text-purple-400 transition">FAQ</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold mb-4">Company</h4>
-                            <ul className="space-y-2 text-gray-400 text-sm">
-                                <li><a href="#" className="hover:text-purple-400 transition">About</a></li>
-                                <li><a href="#" className="hover:text-purple-400 transition">Blog</a></li>
-                                <li><a href="#" className="hover:text-purple-400 transition">Careers</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold mb-4">Legal</h4>
-                            <ul className="space-y-2 text-gray-400 text-sm">
-                                <li><a href="#" className="hover:text-purple-400 transition">Privacy Policy</a></li>
-                                <li><a href="#" className="hover:text-purple-400 transition">Terms of Service</a></li>
-                                <li><a href="#" className="hover:text-purple-400 transition">Cookie Policy</a></li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <p className="text-gray-400 text-sm">© 2026 WBS Generator. All rights reserved.</p>
-                        <div className="flex gap-4">
-                            <a href="#" className="w-10 h-10 rounded-lg bg-gray-800 hover:bg-purple-600 flex items-center justify-center transition">
-                                <span className="text-lg">𝕏</span>
-                            </a>
-                            <a href="#" className="w-10 h-10 rounded-lg bg-gray-800 hover:bg-purple-600 flex items-center justify-center transition">
-                                <span className="text-lg">in</span>
-                            </a>
-                            <a href="#" className="w-10 h-10 rounded-lg bg-gray-800 hover:bg-purple-600 flex items-center justify-center transition">
-                                <span className="text-lg">f</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </footer>
-        </div>
+            </section >
+        </div >
     )
 }
