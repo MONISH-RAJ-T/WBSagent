@@ -5,6 +5,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List
 from services.ai_service import AIService
+from services.pdf_service import PDFService
 from models.schemas import FeatureListResponse, ProjectRequest, CompetitorAnalysisResponse, FlowGenerateRequest
 import tempfile
 import os
@@ -13,6 +14,7 @@ router = APIRouter()
 
 # Dependencies
 ai_service = AIService()
+pdf_service = PDFService()
 
 class FeatureRequest(BaseModel):
     project_name: str
@@ -51,20 +53,37 @@ async def extract_features_from_pdf(
             tmp_file.write(content)
             tmp_path = tmp_file.name
         
-        # TODO: Implement PDF parsing (pdf_parser.py)
-        # For now, return mock features
-        features = [
-            {"id": "f1", "name": "User Authentication", "description": "Login/logout system"},
-            {"id": "f2", "name": "Dashboard", "description": "Main user interface"},
-        ]
+        # Process PDF and extract features
+        result = await pdf_service.process_uploaded_pdf(tmp_path, project_name)
         
-        os.unlink(tmp_path)
+        # Cleanup temporary file
+        try:
+            os.unlink(tmp_path)
+        except:
+            pass
+        
+        # Check if processing was successful
+        if not result.get("success", False):
+            raise HTTPException(status_code=500, detail=result.get("error", "PDF processing failed"))
+        
+        features = result.get("features", [])
+        
+        # Log the features for debugging
+        print(f"[PDF] Extracted {len(features)} features")
+        if features:
+            print(f"[PDF] Sample feature: {features[0]}")
+
         return FeatureListResponse(
             project_name=project_name,
             features=features,
             total_features=len(features)
         )
+    except HTTPException:
+        raise
     except Exception as e:
+        print(f"[PDF] ERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"PDF extraction failed: {str(e)}")
 
 # 3. Competitor analysis
@@ -92,10 +111,8 @@ async def generate_flow(request: FlowGenerateRequest):
         features_dicts = [f.model_dump() for f in request.features]
         print(f"[FLOW] Successfully converted {len(features_dicts)} features to dicts")
         
-        updated_features = await ai_service.generate_execution_flow(
-            project_name=request.project_name,
-            description=request.description,
-            features=features_dicts
+        updated_features = await ai_service.extract_workflow_from_text(
+            "\n".join([f"{f.name}: {f.description}" for f in request.features])
         )
         print(f"[FLOW] AI service returned {len(updated_features)} features")
         

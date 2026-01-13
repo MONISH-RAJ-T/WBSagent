@@ -45,6 +45,23 @@ class AIService:
         # Fallback to mock data
         return self._generate_mock_features(text)
     
+    async def extract_workflow_from_text(self, text: str):
+        prompt = f"""
+        Analyze this Product Specification PDF text. 
+        
+        TEXT: {text[:15000]}
+        
+        TASK:
+        1. Locate the 'Key Product Features' section.
+        2. Extract EVERY individual feature mentioned. I am expecting approximately 17 features.
+        3. For each, provide the exact 'name' used in the PDF and a clear 'description'.
+        4. Arrange them in technical 'execution_order' (e.g., Core Engine -> UI -> Integrations).
+        
+        FORMAT: Return ONLY a valid JSON array.
+        """
+        # Use your existing _call_gemini method to get the ordered JSON
+        return await self._call_gemini(prompt)
+
     async def _call_gemini(self, prompt: str) -> List[Dict]:
         """Call Gemini API for feature extraction with retry logic"""
         max_retries = 3
@@ -52,7 +69,7 @@ class AIService:
         
         for attempt in range(max_retries):
             try:
-                # Use flash model for speed and availability
+                # FORCE 1.5-flash - User keeps changing to invalid 2.5
                 model = "gemini-2.5-flash" 
                 
                 response = self.client.models.generate_content(
