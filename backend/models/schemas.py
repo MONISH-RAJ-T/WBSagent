@@ -16,6 +16,21 @@ class FeatureGenerateRequest(BaseModel):
 
 # ============ FEATURE MODELS ============
 
+class FeatureAnalysis(BaseModel):
+    """Analysis results for intelligent task breakdown"""
+    needs_rnd: bool = False
+    needs_ui: bool = False
+    needs_db: bool = False
+    dev_complexity: str = "medium"  # simple | medium | complex
+    dev_hours: float = 8.0
+    rnd_hours: float = 0.0
+    ui_hours: float = 0.0
+    db_hours: float = 0.0
+    unit_test_hours: float = 0.0  # Auto-calculated: 20% of dev
+    qa_hours: float = 2.0  # Fixed
+    total_hours: float = 0.0
+    reasoning: str = ""
+
 class Feature(BaseModel):
     id: str
     name: str
@@ -24,6 +39,7 @@ class Feature(BaseModel):
     confidence: Optional[float] = 0.8
     execution_order: Optional[int] = None  # Sequential order: 1, 2, 3...
     reasoning: Optional[str] = None  # AI's explanation for ordering
+    analysis: Optional[FeatureAnalysis] = None  # NEW: Intelligent task analysis
 
 class FlowGenerateRequest(BaseModel):
     project_name: str
@@ -49,7 +65,7 @@ class WBSTask(BaseModel):
     dependencies: List[str] = Field(default_factory=list)
     level: int = 1
     parent_id: Optional[str] = None
-    task_type: str = "Dev"  # Dev or R&D
+    task_type: str = "Dev"  # Dev | R&D | UI/UX | DB | Unit Testing | QA Testing
 
 class WBSResponse(BaseModel):
     project_name: str

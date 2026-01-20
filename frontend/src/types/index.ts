@@ -5,6 +5,21 @@ export interface ProjectRequest {
     description: string
 }
 
+export interface FeatureAnalysis {
+    needs_rnd: boolean
+    needs_ui: boolean
+    needs_db: boolean
+    dev_complexity: string  // "simple" | "medium" | "complex"
+    dev_hours: number
+    rnd_hours: number
+    ui_hours: number
+    db_hours: number
+    unit_test_hours: number  // Auto-calculated: 20% of dev
+    qa_hours: number  // Fixed: 2 hours
+    total_hours: number
+    reasoning: string
+}
+
 export interface Feature {
     id: string
     name: string
@@ -14,6 +29,7 @@ export interface Feature {
     execution_order?: number  // Sequential order: 1, 2, 3...
     reasoning?: string  // AI's explanation for ordering
     category_name?: string  // Category label
+    analysis?: FeatureAnalysis  // NEW: Intelligent task breakdown analysis
 }
 
 export interface FlowGenerateRequest {

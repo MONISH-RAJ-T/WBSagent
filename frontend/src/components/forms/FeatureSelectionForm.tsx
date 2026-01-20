@@ -35,6 +35,10 @@ import {
     Delete as DeleteIcon,
     Add as AddIcon,
     Business as BusinessIcon,
+    Science as ScienceIcon,
+    Palette as PaletteIcon,
+    Storage as StorageIcon,
+    Schedule as ScheduleIcon,
 } from '@mui/icons-material'
 import { Feature, Competitor } from '@/types'
 
@@ -372,11 +376,88 @@ export default function FeatureSelectionForm({
                                     <ListItemText
                                         id={labelId}
                                         primary={
-                                            <Typography variant="subtitle1" fontWeight={isSelected ? 'bold' : 'medium'}>
-                                                {feature.name}
-                                            </Typography>
+                                            <Box>
+                                                <Typography variant="subtitle1" fontWeight={isSelected ? 'bold' : 'medium'}>
+                                                    {feature.name}
+                                                </Typography>
+                                                {/* Feature Analysis Indicators */}
+                                                {feature.analysis && (
+                                                    <Box sx={{ display: 'flex', gap: 0.75, mt: 1, flexWrap: 'wrap' }}>
+                                                        {feature.analysis.needs_rnd && (
+                                                            <Chip
+                                                                icon={<ScienceIcon sx={{ fontSize: 14 }} />}
+                                                                label="R&D Required"
+                                                                size="small"
+                                                                sx={{
+                                                                    height: 22,
+                                                                    fontSize: '0.7rem',
+                                                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                                    color: 'white',
+                                                                    '& .MuiChip-icon': { color: 'white' }
+                                                                }}
+                                                            />
+                                                        )}
+                                                        {feature.analysis.needs_ui && (
+                                                            <Chip
+                                                                icon={<PaletteIcon sx={{ fontSize: 14 }} />}
+                                                                label="UI/UX Design"
+                                                                size="small"
+                                                                sx={{
+                                                                    height: 22,
+                                                                    fontSize: '0.7rem',
+                                                                    background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
+                                                                    color: 'white',
+                                                                    '& .MuiChip-icon': { color: 'white' }
+                                                                }}
+                                                            />
+                                                        )}
+                                                        {feature.analysis.needs_db && (
+                                                            <Chip
+                                                                icon={<StorageIcon sx={{ fontSize: 14 }} />}
+                                                                label="DB Schema"
+                                                                size="small"
+                                                                sx={{
+                                                                    height: 22,
+                                                                    fontSize: '0.7rem',
+                                                                    background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+                                                                    color: 'white',
+                                                                    '& .MuiChip-icon': { color: 'white' }
+                                                                }}
+                                                            />
+                                                        )}
+                                                        <Chip
+                                                            icon={<ScheduleIcon sx={{ fontSize: 14 }} />}
+                                                            label={`${feature.analysis.total_hours}h total`}
+                                                            size="small"
+                                                            variant="outlined"
+                                                            sx={{
+                                                                height: 22,
+                                                                fontSize: '0.7rem',
+                                                                borderColor: '#10b981',
+                                                                color: '#10b981',
+                                                                fontWeight: 600,
+                                                                '& .MuiChip-icon': { color: '#10b981' }
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                )}
+                                            </Box>
                                         }
-                                        secondary={feature.description}
+                                        secondary={
+                                            <Box>
+                                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                                    {feature.description}
+                                                </Typography>
+                                                {feature.analysis && (
+                                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', fontStyle: 'italic' }}>
+                                                        Dev: {feature.analysis.dev_hours}h • Testing: {feature.analysis.unit_test_hours + feature.analysis.qa_hours}h
+                                                        {feature.analysis.rnd_hours > 0 && ` • R&D: ${feature.analysis.rnd_hours}h`}
+                                                        {feature.analysis.ui_hours > 0 && ` • UI: ${feature.analysis.ui_hours}h`}
+                                                        {feature.analysis.db_hours > 0 && ` • DB: ${feature.analysis.db_hours}h`}
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                        }
                                     />
                                 </ListItem>
                             </ListItem>

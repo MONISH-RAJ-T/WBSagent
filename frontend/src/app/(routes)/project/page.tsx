@@ -193,7 +193,7 @@ export default function ProjectPage() {
             {/* Header Section */}
             <Box
                 sx={{
-                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
+                    background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
                     color: 'white',
                     py: 6,
                     position: 'relative',

@@ -61,19 +61,75 @@ class AIService:
         """
         # Use your existing _call_gemini method to get the ordered JSON
         return await self._call_gemini(prompt)
+    
+    async def analyze_feature_requirements(self, feature: Dict) -> Dict:
+        """
+        Analyze a feature to determine required work phases.
+        Used by FeatureAnalysisService for intelligent task breakdown.
+        
+        Returns dict with: needs_rnd, needs_ui, needs_db, dev_complexity, reasoning
+        """
+        feature_name = feature.get('name', '')
+        feature_desc = feature.get('description', '')
+        
+        prompt = f"""
+Analyze this software feature to determine what work phases are needed.
+
+Feature: {feature_name}
+Description: {feature_desc}
+
+Determine:
+1. **needs_rnd**: Does it need Research & Development?
+   - TRUE if: New technology, unclear implementation, complex algorithms, proof-of-concept needed
+   - FALSE if: Well-known patterns, straightforward implementation
+
+2. **needs_ui**: Does it have a user interface component?
+   - TRUE if: User-facing screens, dashboards, forms, visualizations, any UI elements
+   - FALSE if: Backend-only, API, background jobs, utilities
+
+3. **needs_db**: Does it require database design work?
+   - TRUE if: New tables/collections, schema changes, data modeling, migrations
+   - FALSE if: Read-only queries, no data structure changes
+
+4. **dev_complexity**: How complex is the development?
+   - "simple": 1-2 days work, straightforward implementation
+   - "medium": 3-5 days work, moderate complexity
+   - "complex": 1-2 weeks work, significant complexity
+
+Return ONLY valid JSON (no markdown, no explanations):
+{{
+    "needs_rnd": true/false,
+    "needs_ui": true/false,
+    "needs_db": true/false,
+    "dev_complexity": "simple/medium/complex",
+    "reasoning": "brief explanation of decisions"
+}}
+"""
+        
+        try:
+            result = await self._call_gemini(prompt)
+            if result and isinstance(result, list) and len(result) > 0:
+                return result[0]
+            elif result and isinstance(result, dict):
+                return result
+        except Exception as e:
+            print(f"AI feature requirement analysis failed: {e}")
+        
+        return None
 
     async def _call_gemini(self, prompt: str) -> List[Dict]:
-        """Call Gemini API for feature extraction with retry logic"""
+        """Call Gemini API using proper async support with client.aio"""
+        if not self.client:
+            return []
+        
         max_retries = 3
         base_delay = 2  # seconds
         
         for attempt in range(max_retries):
             try:
-                # FORCE 1.5-flash - User keeps changing to invalid 2.5
-                model = "gemini-2.5-flash" 
-                
-                response = self.client.models.generate_content(
-                    model=model,
+                # IMPORTANT: Use self.client.aio for true async support
+                response = await self.client.aio.models.generate_content(
+                    model="gemini-2.5-flash",
                     contents=prompt
                 )
                 
@@ -83,15 +139,12 @@ class AIService:
                 return []
                 
             except Exception as e:
-                # Check for overload/unavailable errors
+                # Check for overload/unavailable/quota errors
                 error_str = str(e)
-                if "503" in error_str or "429" in error_str:
-                    if attempt < max_retries - 1:
-                        delay = base_delay * (2 ** attempt)
-                        print(f"Gemini overloaded (503), retrying in {delay}s...")
-                        import asyncio
-                        await asyncio.sleep(delay)
-                        continue
+                if "503" in error_str or "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+                    print(f"⚠️  Gemini API quota/limit reached. Using keyword-based fallback analysis.")
+                    # Don't retry on quota errors, immediately return empty to trigger fallback
+                    return []
                 
                 print(f"Gemini error (attempt {attempt+1}/{max_retries}): {e}")
                 if attempt == max_retries - 1:
@@ -99,21 +152,22 @@ class AIService:
         return []
     
     def _parse_ai_response(self, response: str) -> List[Dict]:
-        """Parse AI response into structured features"""
+        """Robust parsing to prevent 500 errors from bad AI formatting"""
         try:
-            # Remove markdown code blocks if present
-            response = response.strip()
-            if response.startswith('```'):
-                # Find the actual JSON content
-                lines = response.split('\n')
-                response = '\n'.join(lines[1:-1]) if len(lines) > 2 else response
+            text = response.strip()
             
-            # Try to find JSON array in response
-            start = response.find('[')
-            end = response.rfind(']') + 1
+            # Remove markdown markers
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0]
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0]
             
-            if start != -1 and end > start:
-                json_str = response[start:end]
+            # Find JSON boundaries
+            start_idx = text.find('[') if '[' in text else text.find('{')
+            end_idx = (text.rfind(']') if ']' in text else text.rfind('}')) + 1
+            
+            if start_idx != -1 and end_idx > 0:
+                json_str = text[start_idx:end_idx]
                 features = json.loads(json_str)
                 
                 # Validate structure
@@ -122,12 +176,18 @@ class AIService:
                         if 'id' not in feature:
                             feature['id'] = f"f{i+1}"
                     return features
+                elif isinstance(features, dict):
+                    # Single object returned, wrap in list
+                    return [features]
+            
+            return []
+            
         except json.JSONDecodeError as e:
             print(f"JSON parse error: {e}")
+            return []
         except Exception as e:
             print(f"Parse error: {e}")
-        
-        return []
+            return []
     
     def _generate_mock_features(self, text: str) -> List[Dict]:
         """Generate mock features when AI is unavailable"""
@@ -186,7 +246,8 @@ class AIService:
         
         try:
             if self.client:
-                response = self.client.models.generate_content(
+                # Use proper async client
+                response = await self.client.aio.models.generate_content(
                     model=self.model_name,
                     contents=prompt
                 )
@@ -225,8 +286,8 @@ class AIService:
             raise Exception("Gemini API key not configured")
         
         try:
-            # Simple test prompt
-            response = self.client.models.generate_content(
+            # Simple test prompt using async client
+            response = await self.client.aio.models.generate_content(
                 model=self.model_name,
                 contents="Say 'Hello'"
             )
