@@ -13,7 +13,11 @@ class Settings(BaseSettings):
     
     # Gemini AI Configuration
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemma-2-2b-it")
+    
+    # Groq AI Configuration (Fallback)
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
     
     # File paths
     UPLOAD_DIR: str = "temp/uploads"

@@ -49,6 +49,8 @@ export interface WBSTask {
     name: string
     description: string
     duration_hours: number
+    human_hours: number
+    agent_hours: number
     dependencies: string[]
     level: number
     parent_id?: string

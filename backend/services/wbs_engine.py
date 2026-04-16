@@ -71,115 +71,136 @@ class WBSEngine:
                     analysis = analysis.dict()
             
             # Start building tasks for this feature
-            feature_tasks = []
+            start_tasks_idx = len(tasks)
             initial_deps = clean_deps([previous_feature_last_task]) if previous_feature_last_task else []
             current_deps = initial_deps.copy()
             
-            # CONDITIONAL: R&D Phase
+            # ── Read per-subtask hours from AI ──────────────────────────────
+            subtasks = analysis.get('subtasks', {})
+
+            def sh(key: str, human_default: float, agent_default: float):
+                """Get subtask hours, falling back to defaults."""
+                entry = subtasks.get(key, {})
+                h = float(entry.get('human', human_default)) if entry else human_default
+                a = float(entry.get('agent', agent_default)) if entry else agent_default
+                return max(h, 0.5), max(a, 0.2)
+
+            # ── CONDITIONAL LAYERS (only if AI says needed) ──────────────
+
+            # Layer 1: R&D (only for new tech / complex algorithms)
             if analysis.get('needs_rnd', False):
-                rnd_hours = analysis.get('rnd_hours', 2.0)
-                rnd_task_id = f"T{task_id_counter}"
-                
+                h, a = sh('rnd', 4.0, 1.5)
+                t_id = f"T{task_id_counter}"
                 tasks.append({
-                    "id": rnd_task_id,
+                    "id": t_id,
                     "name": f"R&D: Research & Design - {feature_name}",
                     "description": f"Research technical approach, evaluate options, and design architecture for {feature_name}",
-                    "duration_hours": rnd_hours,
+                    "duration_hours": h, "human_hours": h, "agent_hours": a,
                     "dependencies": clean_deps(current_deps),
-                    "level": 1,
-                    "parent_id": feature_id,
-                    "task_type": "R&D"
+                    "level": 1, "parent_id": feature_id, "task_type": "R&D"
                 })
-                current_deps = [rnd_task_id]
+                current_deps = [t_id]
                 task_id_counter += 1
-            
-            # CONDITIONAL: UI/UX Design Phase
-            if analysis.get('needs_ui', False):
-                ui_hours = analysis.get('ui_hours', 2.0)
-                ui_task_id = f"T{task_id_counter}"
-                
+
+            # Layer 2: UI/UX Design (only for features needing wireframes/mockups)
+            if analysis.get('needs_ui_design', False):
+                h, a = sh('ui_design', 3.0, 1.0)
+                t_id = f"T{task_id_counter}"
                 tasks.append({
-                    "id": ui_task_id,
+                    "id": t_id,
                     "name": f"UI/UX Design - {feature_name}",
-                    "description": f"Design user interface, mockups, and user experience flow for {feature_name}",
-                    "duration_hours": ui_hours,
+                    "description": f"Design wireframes, mockups, and user experience flow for {feature_name}",
+                    "duration_hours": h, "human_hours": h, "agent_hours": a,
                     "dependencies": clean_deps(current_deps),
-                    "level": 1,
-                    "parent_id": feature_id,
-                    "task_type": "UI/UX"
+                    "level": 1, "parent_id": feature_id, "task_type": "UI/UX"
                 })
-                current_deps = [ui_task_id]
+                current_deps = [t_id]
                 task_id_counter += 1
-            
-            # CONDITIONAL: Database Schema Design Phase
-            if analysis.get('needs_db', False):
-                db_hours = analysis.get('db_hours', 2.0)
-                db_task_id = f"T{task_id_counter}"
-                
+
+            # Layer 3: Frontend Development (only for features with client-side code)
+            if analysis.get('needs_frontend', False):
+                h, a = sh('frontend', 4.0, 1.5)
+                t_id = f"T{task_id_counter}"
                 tasks.append({
-                    "id": db_task_id,
-                    "name": f"DB Schema Design - {feature_name}",
-                    "description": f"Design database schema, models, and data relationships for {feature_name}",
-                    "duration_hours": db_hours,
+                    "id": t_id,
+                    "name": f"Frontend Development - {feature_name}",
+                    "description": f"Build client-side UI components, pages, and interactions for {feature_name}",
+                    "duration_hours": h, "human_hours": h, "agent_hours": a,
                     "dependencies": clean_deps(current_deps),
-                    "level": 1,
-                    "parent_id": feature_id,
-                    "task_type": "DB"
+                    "level": 2, "parent_id": feature_id, "task_type": "Frontend"
                 })
-                current_deps = [db_task_id]
+                current_deps = [t_id]
                 task_id_counter += 1
-            
-            # ALWAYS: Development Tasks
-            dev_hours = analysis.get('dev_hours', 8.0)
-            dev_complexity = analysis.get('dev_complexity', 'medium')
-            
-            # Generate development tasks based on total dev hours
-            dev_tasks = self._generate_dev_tasks(
-                feature_name=feature_name,
-                feature_id=feature_id,
-                total_dev_hours=dev_hours,
-                complexity=dev_complexity,
-                initial_deps=current_deps,
-                task_id_start=task_id_counter
-            )
-            
-            tasks.extend(dev_tasks)
-            
-            # Track last dev task ID
-            last_dev_task = dev_tasks[-1]['id']
-            task_id_counter += len(dev_tasks)
-            
-            # MANDATORY: Unit Testing (20% of dev time)
-            unit_test_hours = analysis.get('unit_test_hours', round(dev_hours * 0.2, 1))
+
+            # Layer 4: Database Design & Setup (only for features needing schema/tables)
+            if analysis.get('needs_db', False):
+                h, a = sh('db', 3.0, 1.0)
+                t_id = f"T{task_id_counter}"
+                tasks.append({
+                    "id": t_id,
+                    "name": f"Database Design - {feature_name}",
+                    "description": f"Design database schema, models, migrations, and data relationships for {feature_name}",
+                    "duration_hours": h, "human_hours": h, "agent_hours": a,
+                    "dependencies": clean_deps(current_deps),
+                    "level": 2, "parent_id": feature_id, "task_type": "DB"
+                })
+                current_deps = [t_id]
+                task_id_counter += 1
+
+            # Layer 5: Backend Development (only for features needing server-side logic/APIs)
+            last_dev_task = None
+            if analysis.get('needs_backend', False):
+                h, a = sh('backend', 4.0, 1.5)
+                t_id = f"T{task_id_counter}"
+                tasks.append({
+                    "id": t_id,
+                    "name": f"Backend Development - {feature_name}",
+                    "description": f"Build server-side APIs, business logic, and services for {feature_name}",
+                    "duration_hours": h, "human_hours": h, "agent_hours": a,
+                    "dependencies": clean_deps(current_deps),
+                    "level": 2, "parent_id": feature_id, "task_type": "Backend"
+                })
+                current_deps = [t_id]
+                last_dev_task = t_id
+                task_id_counter += 1
+
+            # If no backend task was created, use the last task in the chain
+            if not last_dev_task and tasks:
+                last_dev_task = tasks[-1]['id']
+
+            # MANDATORY: Unit Testing
+            h, a = sh('unit_test', 1.5, 0.5)
             unit_test_task_id = f"T{task_id_counter}"
-            
             tasks.append({
                 "id": unit_test_task_id,
                 "name": f"Unit Testing - {feature_name}",
-                "description": f"Write and execute unit tests for {feature_name} (20% dev time)",
-                "duration_hours": unit_test_hours,
+                "description": f"Write and execute unit tests for {feature_name}",
+                "duration_hours": h,
+                "human_hours": h,
+                "agent_hours": a,
                 "dependencies": clean_deps([last_dev_task]),
                 "level": 2,
                 "parent_id": feature_id,
                 "task_type": "Unit Testing"
             })
             task_id_counter += 1
-            
-            # MANDATORY: QA Testing (Fixed 2 hours)
-            qa_hours = analysis.get('qa_hours', 2.0)
+
+            # MANDATORY: QA Testing
+            h, a = sh('qa', 2.0, 0.5)
             qa_task_id = f"T{task_id_counter}"
-            
             tasks.append({
                 "id": qa_task_id,
                 "name": f"QA Testing - {feature_name}",
                 "description": f"Manual QA validation and quality assurance for {feature_name}",
-                "duration_hours": qa_hours,
+                "duration_hours": h,
+                "human_hours": h,
+                "agent_hours": a,
                 "dependencies": clean_deps([unit_test_task_id]),
                 "level": 2,
                 "parent_id": feature_id,
                 "task_type": "QA Testing"
             })
-            
+
             # Store last task of this feature for next feature's dependency
             previous_feature_last_task = qa_task_id
             task_id_counter += 1

@@ -3,6 +3,7 @@ AI Service - Gemini API Integration
 Handles all AI-powered feature extraction using Google's Gemini
 """
 import json
+import httpx
 from typing import List, Dict
 from google import genai
 from config import settings
@@ -11,6 +12,9 @@ class AIService:
     def __init__(self):
         self.gemini_key = settings.GEMINI_API_KEY
         self.model_name = settings.GEMINI_MODEL
+        
+        self.groq_key = settings.GROQ_API_KEY
+        self.groq_model = settings.GROQ_MODEL
         
         # Configure Gemini API client
         if self.gemini_key:
@@ -73,36 +77,44 @@ class AIService:
         feature_desc = feature.get('description', '')
         
         prompt = f"""
-Analyze this software feature to determine what work phases are needed.
+You are a senior software architect. Analyze this feature and determine EXACTLY which development layers are required. Only include layers that are genuinely needed — do NOT include unnecessary layers.
 
 Feature: {feature_name}
 Description: {feature_desc}
 
-Determine:
-1. **needs_rnd**: Does it need Research & Development?
-   - TRUE if: New technology, unclear implementation, complex algorithms, proof-of-concept needed
-   - FALSE if: Well-known patterns, straightforward implementation
+For EACH layer below, set true/false based on whether this specific feature genuinely requires work in that layer:
 
-2. **needs_ui**: Does it have a user interface component?
-   - TRUE if: User-facing screens, dashboards, forms, visualizations, any UI elements
-   - FALSE if: Backend-only, API, background jobs, utilities
+- **needs_rnd**: TRUE only if this involves new/unfamiliar technology, complex algorithms, ML/AI, or requires a proof-of-concept. FALSE for standard/common features.
+- **needs_ui_design**: TRUE only if this feature requires wireframing, mockups, or UX flow design. FALSE for backend-only or simple UI reuse.
+- **needs_frontend**: TRUE only if this requires client-side code (React, HTML, CSS, JS). FALSE for pure backend features like cron jobs, scripts, or API-only services.
+- **needs_db**: TRUE only if this requires new database tables, schema changes, or data modeling. FALSE if it only reads existing data or has no persistence.
+- **needs_backend**: TRUE only if this requires server-side logic, APIs, or business logic. FALSE for pure frontend/static features.
 
-3. **needs_db**: Does it require database design work?
-   - TRUE if: New tables/collections, schema changes, data modeling, migrations
-   - FALSE if: Read-only queries, no data structure changes
+For each layer that is TRUE, provide realistic hours:
+- **human**: Hours for a skilled human developer to complete this layer manually
+- **agent**: Hours for an AI coding agent to complete it + human review time
 
-4. **dev_complexity**: How complex is the development?
-   - "simple": 1-2 days work, straightforward implementation
-   - "medium": 3-5 days work, moderate complexity
-   - "complex": 1-2 weeks work, significant complexity
+Mandatory layers (always included regardless):
+- **unit_test**: Writing and running unit/integration tests for this feature
+- **qa**: Manual QA validation and testing
 
 Return ONLY valid JSON (no markdown, no explanations):
 {{
     "needs_rnd": true/false,
-    "needs_ui": true/false,
+    "needs_ui_design": true/false,
+    "needs_frontend": true/false,
     "needs_db": true/false,
-    "dev_complexity": "simple/medium/complex",
-    "reasoning": "brief explanation of decisions"
+    "needs_backend": true/false,
+    "subtasks": {{
+        "rnd":        {{"human": 0, "agent": 0}},
+        "ui_design":  {{"human": 0, "agent": 0}},
+        "frontend":   {{"human": 0, "agent": 0}},
+        "db":         {{"human": 0, "agent": 0}},
+        "backend":    {{"human": 0, "agent": 0}},
+        "unit_test":  {{"human": 1.5, "agent": 0.5}},
+        "qa":         {{"human": 2.0, "agent": 0.5}}
+    }},
+    "reasoning": "brief explanation of why each layer was included or excluded"
 }}
 """
         
@@ -118,41 +130,60 @@ Return ONLY valid JSON (no markdown, no explanations):
         return None
 
     async def _call_gemini(self, prompt: str) -> List[Dict]:
-        """Call Gemini API using proper async support with client.aio"""
-        if not self.client:
-            return []
+        """Call Gemini API using proper async support with client.aio. Fallback to Groq if failed."""
+        if self.client:
+            max_retries = 3
+            base_delay = 2  # seconds
+            
+            for attempt in range(max_retries):
+                try:
+                    # IMPORTANT: Use self.client.aio for true async support
+                    response = await self.client.aio.models.generate_content(
+                        model=self.model_name,
+                        contents=prompt
+                    )
+                    
+                    if response.text:
+                        return self._parse_ai_response(response.text)
+                    
+                    break
+                    
+                except Exception as e:
+                    # Check for overload/unavailable/quota errors
+                    error_str = str(e)
+                    if "503" in error_str or "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+                        print(f"⚠️  Gemini API quota/limit reached. Using Groq fallback.")
+                        break
+                    
+                    print(f"Gemini error (attempt {attempt+1}/{max_retries}): {e}")
+                    if attempt == max_retries - 1:
+                        break
         
-        max_retries = 3
-        base_delay = 2  # seconds
-        
-        for attempt in range(max_retries):
+        if getattr(self, 'groq_key', None):
+            print("Starting Groq fallback API request...")
             try:
-                # IMPORTANT: Use self.client.aio for true async support
-                response = await self.client.aio.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt
-                )
-                
-                if response.text:
-                    return self._parse_ai_response(response.text)
-                
-                return []
-                
+                async with httpx.AsyncClient() as client:
+                    resp = await client.post(
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        headers={"Authorization": f"Bearer {self.groq_key}"},
+                        json={
+                            "model": self.groq_model,
+                            "messages": [{"role": "user", "content": prompt}]
+                        },
+                        timeout=30.0
+                    )
+                    resp.raise_for_status()
+                    data = resp.json()
+                    content = data["choices"][0]["message"]["content"]
+                    return self._parse_ai_response(content)
             except Exception as e:
-                # Check for overload/unavailable/quota errors
-                error_str = str(e)
-                if "503" in error_str or "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
-                    print(f"⚠️  Gemini API quota/limit reached. Using keyword-based fallback analysis.")
-                    # Don't retry on quota errors, immediately return empty to trigger fallback
-                    return []
+                print(f"Groq API skipped/failed: {e}")
                 
-                print(f"Gemini error (attempt {attempt+1}/{max_retries}): {e}")
-                if attempt == max_retries - 1:
-                    return []
         return []
     
     def _parse_ai_response(self, response: str) -> List[Dict]:
         """Robust parsing to prevent 500 errors from bad AI formatting"""
+        import re
         try:
             text = response.strip()
             
@@ -168,6 +199,11 @@ Return ONLY valid JSON (no markdown, no explanations):
             
             if start_idx != -1 and end_idx > 0:
                 json_str = text[start_idx:end_idx]
+
+                # ── Fix trailing commas (common AI mistake) ───────────────
+                # Remove comma before ] or }
+                json_str = re.sub(r',\s*([}\]])', r'\1', json_str)
+
                 features = json.loads(json_str)
                 
                 # Validate structure
@@ -269,7 +305,7 @@ Return ONLY valid JSON (no markdown, no explanations):
                             return json.loads(clean_json)
         except Exception as e:
             print(f"Competitor analysis failed: {e}")
-            
+
         # Fallback to mock data if AI fails
         return {
             "competitors": [

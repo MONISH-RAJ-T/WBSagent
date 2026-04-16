@@ -62,6 +62,8 @@ class WBSTask(BaseModel):
     name: str
     description: str
     duration_hours: float
+    human_hours: float = 0.0
+    agent_hours: float = 0.0
     dependencies: List[str] = Field(default_factory=list)
     level: int = 1
     parent_id: Optional[str] = None

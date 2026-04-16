@@ -61,10 +61,16 @@ export default function WBSTaskEditor({
     const [formName, setFormName] = useState('')
     const [formDescription, setFormDescription] = useState('')
     const [formDuration, setFormDuration] = useState<number>(4)
+    const [formHumanHours, setFormHumanHours] = useState<number>(4)
+    const [formAgentHours, setFormAgentHours] = useState<number>(2)
 
     // Calculate totals
-    const totalHours = useMemo(() => {
-        return taskList.reduce((acc, task) => acc + (Number(task.duration_hours) || 0), 0)
+    const totalHumanHours = useMemo(() => {
+        return taskList.reduce((acc, task) => acc + (Number(task.human_hours) || Number(task.duration_hours) || 0), 0)
+    }, [taskList])
+
+    const totalAgentHours = useMemo(() => {
+        return taskList.reduce((acc, task) => acc + (Number(task.agent_hours) || (Number(task.duration_hours) || 0) * 0.5), 0)
     }, [taskList])
 
     const handleOpenAdd = () => {
@@ -72,6 +78,8 @@ export default function WBSTaskEditor({
         setFormName('')
         setFormDescription('')
         setFormDuration(4)
+        setFormHumanHours(4)
+        setFormAgentHours(2)
         setOpenDialog(true)
     }
 
@@ -80,6 +88,8 @@ export default function WBSTaskEditor({
         setFormName(task.name)
         setFormDescription(task.description)
         setFormDuration(task.duration_hours)
+        setFormHumanHours(task.human_hours || task.duration_hours)
+        setFormAgentHours(task.agent_hours || task.duration_hours * 0.5)
         setOpenDialog(true)
     }
 
@@ -93,7 +103,7 @@ export default function WBSTaskEditor({
         if (editingTask) {
             setTaskList(prev => prev.map(t =>
                 t.id === editingTask.id
-                    ? { ...t, name: formName, description: formDescription, duration_hours: formDuration }
+                    ? { ...t, name: formName, description: formDescription, duration_hours: formDuration, human_hours: formHumanHours, agent_hours: formAgentHours }
                     : t
             ))
         } else {
@@ -103,6 +113,8 @@ export default function WBSTaskEditor({
                 name: formName,
                 description: formDescription,
                 duration_hours: formDuration,
+                human_hours: formHumanHours,
+                agent_hours: formAgentHours,
                 level: 1,
                 dependencies: [],
                 task_type: 'Dev'
@@ -204,7 +216,8 @@ export default function WBSTaskEditor({
                                     backgroundClip: 'text',
                                 }}
                             >
-                                {totalHours} <Typography component="span" variant="h6" sx={{ opacity: 0.7 }}>hours</Typography>
+                                {totalHumanHours.toFixed(1)} <Typography component="span" variant="h6" sx={{ opacity: 0.7, mr: 2 }}>hrs (Human)</Typography>
+                                <Typography component="span" variant="h5" sx={{ color: '#10b981' }}>| {totalAgentHours.toFixed(1)} <Typography component="span" variant="body1" sx={{ opacity: 0.8 }}>hrs (Agent)</Typography></Typography>
                             </Typography>
                         </Box>
                         <Button
@@ -240,7 +253,8 @@ export default function WBSTaskEditor({
                             <TableRow>
                                 <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>Task Details</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
-                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Duration (Hrs)</TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Human (Hrs)</TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold', color: '#10b981' }}>Agent (Hrs)</TableCell>
                                 <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
@@ -273,7 +287,12 @@ export default function WBSTaskEditor({
                                     </TableCell>
                                     <TableCell align="center">
                                         <Typography variant="body2" fontWeight="medium">
-                                            {task.duration_hours}h
+                                            {task.human_hours || task.duration_hours}h
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Typography variant="body2" fontWeight="bold" sx={{ color: '#10b981' }}>
+                                            {task.agent_hours ? task.agent_hours : Number(task.duration_hours * 0.5).toFixed(1)}h
                                         </Typography>
                                     </TableCell>
                                     <TableCell align="right">
@@ -381,16 +400,32 @@ export default function WBSTaskEditor({
                             value={formDescription}
                             onChange={(e) => setFormDescription(e.target.value)}
                         />
-                        <TextField
-                            label="Estimated Duration"
-                            type="number"
-                            fullWidth
-                            value={formDuration}
-                            onChange={(e) => setFormDuration(Number(e.target.value))}
-                            InputProps={{
-                                endAdornment: <InputAdornment position="end">hours</InputAdornment>,
-                            }}
-                        />
+                        <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Human Duration"
+                                    type="number"
+                                    fullWidth
+                                    value={formHumanHours}
+                                    onChange={(e) => setFormHumanHours(Number(e.target.value))}
+                                    InputProps={{
+                                        endAdornment: <InputAdornment position="end">hrs</InputAdornment>,
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Agent Duration"
+                                    type="number"
+                                    fullWidth
+                                    value={formAgentHours}
+                                    onChange={(e) => setFormAgentHours(Number(e.target.value))}
+                                    InputProps={{
+                                        endAdornment: <InputAdornment position="end">hrs</InputAdornment>,
+                                    }}
+                                />
+                            </Grid>
+                        </Grid>
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ p: 3 }}>
